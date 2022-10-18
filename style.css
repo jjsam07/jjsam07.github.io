@@ -1,0 +1,17 @@
+p {
+	font-size: 5px;
+	font-family: Courier New;
+	text-align: center;
+	line-height: 21%;
+	white-space: nowrap;
+	
+}
+
+body {
+	/*background-image: url('caloocan boy.bmp');*/
+	/*background-repeat: no-repeat;*/
+	/*background-size: contain;*/
+	background-color: gray;
+	color: black;
+	margin: 0px;
+}
