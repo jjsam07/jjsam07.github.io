@@ -127,6 +127,10 @@ async function eh_paano_kung() {
 		await delay(50);
 	}
 	audio.play();
+	await delay(33000);
+	document.getElementById('caloocan_boy').style.opacity = '0';
+	await delay(4700);
+	document.getElementById('background_image').style.opacity = '1';
 }
 
 function keydown_handler(event) {

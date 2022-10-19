@@ -6,15 +6,20 @@
 		<script src='caloocan boy.js'></script>
 		<script src='script.js'></script>
 	</head>
-	<body id='body' onload='document.addEventListener("keydown", keydown_handler, false);'>
-		<p class='press_enter' id='press_enter'>
-			Press Enter to continue...<br>
-			<br>
-			or<br>
-		</p>
-		<div class='button_div' id='button_div'>
-			<button class='button_continue' type='button' onclick='button_handler()'>Click Me!</button>
+	<body class='body' id='body' onload='document.addEventListener("keydown", keydown_handler, false);'>
+		<div class='container'>
+			<div class='caloocan_boy' id='caloocan_boy'></div>
+			<p class='press_enter' id='press_enter'>
+				Press Enter to continue...<br>
+				<br>
+				or<br>
+			</p>
+			<div class='button_div' id='button_div'>
+				<button class='button_continue' type='button' onclick='button_handler()'>Click Me!</button>
+			</div>
+			<div class='background_div'>
+				<img class='background_image' id='background_image' src='background.bmp'>
+			</div>
 		</div>
-		<div class='caloocan_boy' id='caloocan_boy'></div>
 	</body>
 </html>
