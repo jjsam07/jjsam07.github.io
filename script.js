@@ -61,13 +61,69 @@ function testing() {
 	}
 }
 
-function eh_paano_kung() {
+async function eh_paano_kung() {
 	var out = document.getElementById('caloocan_boy');
+	var height = caloocan_boy.length;
+	var width = caloocan_boy[0].length;
+	var caloocan_boy_numeric = Array(height);
+	var fade_to_caloocan_boy = Array(height);
+	var children;
 	var p;
-	for (const x of caloocan_boy) {
+	var str;
+	var temp;
+	var counter;
+	const delay = ms => new Promise(res => setTimeout(res, ms));
+	// Convert char to char codes
+	for (let i = 0; i < height; i++) {
+		caloocan_boy_numeric[i] = Array(width);
+		for (let j = 0; j < width; j++) {
+			caloocan_boy_numeric[i][j] = caloocan_boy[i][j].charCodeAt();
+		}
+	}
+	// Fill array with random char codes
+	for (let i = 0; i < height; i++) {
+		fade_to_caloocan_boy[i] = Array(width);
+		for (let j = 0; j < width; j++) {
+			fade_to_caloocan_boy[i][j] = (Math.floor(Math.random() * 100) % 0x5F) + 0x20;
+		}
+	}
+	// Display the randomly generated characters
+	for (const row of fade_to_caloocan_boy) {
+		str = '';
+		for (const col of row) {
+			str += String.fromCharCode(col);
+		}
 		p = document.createElement('p');
-		p.appendChild(document.createTextNode(x));
+		p.appendChild(document.createTextNode(str));
 		out.appendChild(p);
+	}
+	children = out.children;
+	counter = 0;
+	while (true) {
+		for (let i = 0; i < height; i++) {
+			for (let j = 0; j < width; j++) {
+				if (fade_to_caloocan_boy[i][j] > caloocan_boy_numeric[i][j]) {
+					fade_to_caloocan_boy[i][j] -= 1;
+					counter += 1;
+				} else if (fade_to_caloocan_boy[i][j] < caloocan_boy_numeric[i][j]) {
+					fade_to_caloocan_boy[i][j] += 1;
+					counter += 1;
+				}
+			}
+		}
+		for (let k = 0; k < children.length; k++) {
+			str = '';
+			for (const c of fade_to_caloocan_boy[k]) {
+				str += String.fromCharCode(c);
+			}
+			children[k].textContent = str;
+		}
+		if (counter === 0) {
+			break;
+		} else {
+			counter = 0;
+		}
+		await delay(50);
 	}
 }
 
