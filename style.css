@@ -1,17 +1,37 @@
-p {
-	font-size: 5px;
+.key_pressed_display {
+	font-size: 30px;
 	font-family: Courier New;
 	text-align: center;
-	line-height: 21%;
-	white-space: nowrap;
-	
+}
+
+.color_sample {
+	font-size: 3px;
+	font-family: Courier New;
+	text-align: center;
+}
+
+.color_palette {
+	font-size: 3px;
+	font-family: Courier New;
+	text-align: center;
+	line-height: 80%;
+	white-space: pre;
+}
+
+.caloocan_boy {
+	font-size: 1px;
+	font-family: Courier New;
+	text-align: center;
+	line-height: 80%;
+	white-space: pre;
 }
 
 body {
 	/*background-image: url('caloocan boy.bmp');*/
-	/*background-repeat: no-repeat;*/
-	/*background-size: contain;*/
-	background-color: gray;
-	color: black;
+	background-repeat: no-repeat;
+	background-size: contain;
+	background-position: center;
+	background-color: black;
+	color: white;
 	margin: 0px;
 }
