@@ -62,6 +62,7 @@ function testing() {
 }
 
 async function eh_paano_kung() {
+	var audio = new Audio('audio.mp3');
 	var out = document.getElementById('caloocan_boy');
 	var height = caloocan_boy.length;
 	var width = caloocan_boy[0].length;
@@ -125,9 +126,32 @@ async function eh_paano_kung() {
 		}
 		await delay(50);
 	}
+	audio.play();
 }
 
-function onload() {
+function keydown_handler(event) {
+	if (event.key === 'Enter') {
+		document.removeEventListener('keydown', keydown_handler);
+		var elem = document.getElementById('press_enter');
+		var button_div = document.getElementById('button_div');
+		elem.remove();
+		button_div.innerHTML = '';
+		button_div.remove();
+		eh_paano_kung();
+	}
+}
+
+function button_handler() {
+	document.removeEventListener('keydown', keydown_handler);
+	var elem = document.getElementById('press_enter');
+	var button_div = document.getElementById('button_div');
+	elem.remove();
+	button_div.innerHTML = '';
+	button_div.remove();
+	eh_paano_kung();
+}
+
+function document_add_listeners() {
 	// Add event listener on keydown
 	document.addEventListener('keydown', (event) => {
 		var name = event.key;

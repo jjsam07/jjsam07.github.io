@@ -28,6 +28,31 @@
 
 .caloocan_boy_href {
 	color: pink;
+	font-size: 30px;
+	font-family: Courier New;
+	text-align: center;
+}
+
+.not_recommended {
+	font-size: 30px;
+	font-family: Courier New;
+	text-align: center;
+}
+
+.press_enter {
+	font-size: 30px;
+	font-family: Courier New;
+	text-align: center;
+}
+
+.button_continue {
+	font-size: 30px;
+	font-family: Courier New;
+	font-weight: bold;
+}
+
+.button_div {
+	text-align: center;
 }
 
 body {
@@ -37,5 +62,4 @@ body {
 	background-position: center;
 	background-color: black;
 	color: white;
-	margin: 0px;
 }
