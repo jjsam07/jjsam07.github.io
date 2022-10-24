@@ -1,0 +1,11 @@
+body {
+	background-color: black;
+	color: white;
+}
+
+div {
+	color: pink;
+	font-size: 30px;
+	font-family: Courier New;
+	text-align: center;
+}
