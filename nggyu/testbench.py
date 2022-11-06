@@ -1,3 +1,4 @@
+import sys
 from bmp2ascii import color_to_3bit_greyscale
 from nggyu import run_length_encode, diff, pair
 from player import byte_to_nibble, frame_decode, frame_update, framedata_to_image
@@ -5,11 +6,17 @@ from player import byte_to_nibble, frame_decode, frame_update, framedata_to_imag
 def main():
 	frames_dir = 'D:\\This PC\\Videos\\nggyu\\'
 	prev_frame = None
+	decoded_frame = [0 for i in range(0, 116*90)]
 	for frame_num in range(0, 5298):
+		sys.stdout.write(f'frame{frame_num}\r')
+		sys.stdout.flush()
 		with open(frames_dir+f'scene{frame_num}.bmp', 'rb') as fin:
 			original_frame = color_to_3bit_greyscale(fin, px_array_column_start_offset=22, px_array_column_end_offset=22)[0]
-			#for x,y in pair(run_length_encode(diff(prev_frame, current_frame))):
-			decoded_frame = frame_decode(run_length_encode(original_frame))
+			#decoded_frame = frame_decode(run_length_encode(original_frame)) # Test run_length_encode
+			#decoded_frame = frame_decode(diff(original_frame)) # Test diff
+			#frame_update(decoded_frame, frame_decode(diff(prev_frame, original_frame))) # Test diff + frame_update
+			frame_update(decoded_frame, frame_decode(run_length_encode(diff(prev_frame, original_frame)))) # Test run_length_encode + diff + frame_update
+			prev_frame = original_frame
 			if original_frame != decoded_frame:
 				print(f'frame{frame_num} corrupted')
 				print(f'original_frame len = {len(original_frame)}')

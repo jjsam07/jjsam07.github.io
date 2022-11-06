@@ -11,21 +11,32 @@ def frame_decode(encoded_frame):
 	result = []
 	temp = 0
 	shift_mult = 0
+	skip = False
+	remaining_bits = False
 	for x in encoded_frame:
 		if x & 0b1000:
-			if x == 0b1000 and temp != 0:
+			if remaining_bits:
+				temp |= ((x & 0b111) << (3*shift_mult)+2)
+				shift_mult += 1
+				continue
+			if x & 0b100:
+				skip = True
+			temp |= x & 0b11
+			remaining_bits = True
+			continue
+		if temp != 0:
+			if skip:
 				result.append(temp << 2)
 				temp = 0
 				shift_mult = 0
+				skip = False
+				remaining_bits = False
 				continue
-			temp |= ((x & 0b111) << (3*shift_mult))
-			shift_mult += 1
-			continue
-		if temp != 0:
 			for i in range(0, temp):
 				result.append(x)
 			temp = 0
 			shift_mult = 0
+			remaining_bits = False
 			continue
 		result.append(x)
 	return result

@@ -11,27 +11,40 @@ function byte_to_nibble(array_buffer) {
 }
 
 function frame_decode(encoded_frame) {
-	var result = [];
-	var temp = 0;
-	var shift_mult = 0;
+	result = [];
+	temp = 0;
+	shift_mult = 0;
+	skip = false;
+	remaining_bits = false;
 	for (const x of encoded_frame) {
 		if (x & 0b1000) {
-			if (x === 0b1000 && temp !== 0) {
+			if (remaining_bits) {
+				temp |= ((x & 0b111) << (3*shift_mult)+2);
+				shift_mult += 1;
+				continue;
+			}
+			if (x & 0b100) {
+				skip = true;
+			}
+			temp |= x & 0b11;
+			remaining_bits = true;
+			continue;
+		}
+		if (temp != 0) {
+			if (skip) {
 				result.push(temp << 2);
 				temp = 0;
 				shift_mult = 0;
+				skip = false;
+				remaining_bits = false;
 				continue;
 			}
-			temp |= ((x & 0b111) << (3*shift_mult));
-			shift_mult += 1;
-			continue;
-		}
-		if (temp !== 0) {
 			for (let i = 0; i < temp; i++) {
 				result.push(x);
 			}
 			temp = 0;
 			shift_mult = 0;
+			remaining_bits = false;
 			continue;
 		}
 		result.push(x);
@@ -84,7 +97,7 @@ async function nggyu() {
 	children = display.children;
 	frame_buffer = frame_decode(byte_to_nibble(await fetch_frame(0)));
 	image_px_array = framedata_to_image(frame_buffer);
-	//audio.play();
+	audio.play();
 	for (let j = 1; j < 5298; j++) {
 		for (let k = 0; k < children.length; k++) {
 			str = image_px_array[k*width];
@@ -93,7 +106,7 @@ async function nggyu() {
 			}
 			children[k].textContent = str;
 		}
-		await delay(100);
+		await delay(30);
 		frame_update(frame_buffer, frame_decode(byte_to_nibble(await fetch_frame(j))));
 		image_px_array = framedata_to_image(frame_buffer);
 	}

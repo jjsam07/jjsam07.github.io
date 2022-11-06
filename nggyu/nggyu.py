@@ -6,9 +6,13 @@ def run_length_encode(data):
 	output_buffer = []
 	current_px = data[0]
 	count = 0
+	skip = False
 	for px in data:
 		if px & 0b1000:
+			skip = True
 			if count > 2:
+				output_buffer.append((count & 0b11) | 0b1000)
+				count >>= 2
 				while count != 0:
 					output_buffer.append((count & 0b111) | 0b1000)
 					count >>= 3
@@ -19,9 +23,19 @@ def run_length_encode(data):
 			count = 0
 			continue
 		if px == current_px:
+			if skip:
+				skip = False
+				output_buffer.append(px)
+				continue
 			count += 1
 		else:
+			if skip:
+				skip = False
+				output_buffer.append(px)
+				continue
 			if count > 2:
+				output_buffer.append((count & 0b11) | 0b1000)
+				count >>= 2
 				while count != 0:
 					output_buffer.append((count & 0b111) | 0b1000)
 					count >>= 3
@@ -31,6 +45,8 @@ def run_length_encode(data):
 			current_px = px
 			count = 1
 	if count > 2:
+		output_buffer.append((count & 0b11) | 0b1000)
+		count >>= 2
 		while count != 0:
 			output_buffer.append((count & 0b111) | 0b1000)
 			count >>= 3
@@ -50,10 +66,12 @@ def diff(previous, current):
 	for prev, curr in zip(previous, current):
 		if prev != curr:
 			if skip > 2:
+				result.append((skip & 0b11) | 0b1100)
+				skip >>= 2
 				while skip != 0:
 					result.append((skip & 0b111) | 0b1000)
 					skip >>= 3
-				result.append(0b1000)
+				result.append(0) # Insert dummy literal
 			elif skip == 2:
 				result.append(prevprev_iter)
 				result.append(prev_iter)
@@ -67,10 +85,12 @@ def diff(previous, current):
 		prev_iter = curr
 		skip += 1
 	if skip > 2:
+		result.append((skip & 0b11) | 0b1100)
+		skip >>= 2
 		while skip != 0:
 			result.append((skip & 0b111) | 0b1000)
 			skip >>= 3
-		result.append(0b1000)
+		result.append(0) # Insert dummy literal
 	elif skip == 2:
 		result.append(prevprev_iter)
 		result.append(prev_iter)
@@ -91,10 +111,9 @@ def nggyu_encoded():
 		sys.stdout.flush()
 		with open(frames_dir+f'scene{frame_num}.bmp', 'rb') as fin:
 			current_frame = color_to_3bit_greyscale(fin, px_array_column_start_offset=22, px_array_column_end_offset=22)[0]
-			#for x,y in pair(run_length_encode(diff(prev_frame, current_frame))):
-			for x,y in pair(run_length_encode(current_frame)):
+			for x,y in pair(run_length_encode(diff(prev_frame, current_frame))):
 				output_buffer.append((x << 4) | y)
-			#prev_frame = current_frame
+			prev_frame = current_frame
 		with open(f'D:\\GitHub\\jjsam07.github.io\\nggyu\\frames\\frame{frame_num}', 'wb') as fout:
 			fout.write(bytes(output_buffer))
 		output_buffer = []
