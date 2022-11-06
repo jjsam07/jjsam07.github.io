@@ -1,0 +1,28 @@
+.nggyu {
+	font-size: 5px;
+	font-family: Courier New;
+	text-align: center;
+	line-height: 80%;
+	white-space: pre;
+}
+
+.press_enter {
+	font-size: 30px;
+	font-family: Courier New;
+	text-align: center;
+}
+
+.button_continue {
+	font-size: 30px;
+	font-family: Courier New;
+	font-weight: bold;
+}
+
+.button_div {
+	text-align: center;
+}
+
+.body {
+	background-color: black;
+	color: white;
+}
