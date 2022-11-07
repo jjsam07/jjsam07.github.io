@@ -70,7 +70,7 @@ def frame_update(frame_buffer, next_frame):
 		index += 1
 
 def main():
-	frames_dir = 'D:\\GitHub\\jjsam07.github.io\\nggyu\\frames\\'
+	frames_dir = 'D:\\GitHub\\jjsam07.github.io\\attlh\\frames\\'
 	frame_buffer = []
 	next_frame = []
 	frame_buffer_len = 0
