@@ -1,3 +1,14 @@
+function delay(ms) {
+	return new Promise(res => setTimeout(res, ms));
+}
+
+async function decompress_blob(compressed_blob) {
+  const ds = new DecompressionStream("gzip");
+  const decompressedStream = compressed_blob.stream().pipeThrough(ds);
+  return await new Response(decompressedStream).blob();
+}
+
+
 function byte_to_nibble(array_buffer) {
 	var b = 0;
 	var result = new Uint8Array(array_buffer.byteLength * 2);
@@ -10,13 +21,19 @@ function byte_to_nibble(array_buffer) {
 	return result;
 }
 
-function frame_decode(encoded_frame) {
-	result = [];
-	temp = 0;
-	shift_mult = 0;
-	skip = false;
-	remaining_bits = false;
-	for (const x of encoded_frame) {
+function stream_decode(encoded_stream, frame_array) {
+	var result = [];
+	var count = 0;
+	var temp = 0;
+	var shift_mult = 0;
+	var skip = false;
+	var remaining_bits = false;
+	for (const x of encoded_stream) {
+		if (count == 10440) {
+			frame_array.push(result);
+			result = [];
+			count = 0;
+		}
 		if (x & 0b1000) {
 			if (remaining_bits) {
 				temp |= ((x & 0b111) << (3*shift_mult)+2);
@@ -33,6 +50,7 @@ function frame_decode(encoded_frame) {
 		if (temp != 0) {
 			if (skip) {
 				result.push(temp << 2);
+				count += temp;
 				temp = 0;
 				shift_mult = 0;
 				skip = false;
@@ -42,14 +60,19 @@ function frame_decode(encoded_frame) {
 			for (let i = 0; i < temp; i++) {
 				result.push(x);
 			}
+			count += temp;
 			temp = 0;
 			shift_mult = 0;
 			remaining_bits = false;
 			continue;
 		}
 		result.push(x);
+		count += 1;
 	}
-	return result;
+	if (count == 10440) {
+		frame_array.push(result);
+	}
+	//return result;
 }
 
 function framedata_to_image(framedata) {
@@ -73,21 +96,31 @@ function frame_update(frame_buffer, next_frame) {
 	}
 }
 
-async function fetch_frames(frame_array) {
-	const delay = ms => new Promise(res => setTimeout(res, ms));
-	for (let i = 0; i < 5298; i++) {
-		frame_array.push((await (await fetch('frames/frame' + i)).blob()).arrayBuffer());
+async function fetch_frame_bundles(frame_bundle) {
+	for (let i = 0; i < 11; i++) {
+		frame_bundle.push(
+			fetch('frames/frame_bundle'+i+'.gz')
+				.then((res) => res.blob())
+				.then((compressed_blob) => decompress_blob(compressed_blob))
+				.then((decompressed_blob) => decompressed_blob.arrayBuffer())
+				.then((byte_array) => byte_to_nibble(byte_array))
+		);
 		await delay(1);
 	}
 }
 
-async function decode_frames(decoded_frame_array, frame_array) {
-	const delay = ms => new Promise(res => setTimeout(res, ms));
-	frame_buffer = frame_decode(byte_to_nibble(await frame_array[0]));
-	decoded_frame_array.push(framedata_to_image(frame_buffer));
+async function frame_unbundle(frame_bundle, frame_array) {
+	for (let i = 1; i < 11; i++) {
+		stream_decode(await frame_bundle[i], frame_array);
+	}
+}
+
+async function decode_frames(decoded_frame, frame_array) {
+	frame_buffer = frame_array[0];
+	decoded_frame.push(framedata_to_image(frame_buffer));
 	for (let i = 1; i < 5298; i++) {
-		frame_update(frame_buffer, frame_decode(byte_to_nibble(await frame_array[i])));
-		decoded_frame_array.push(framedata_to_image(frame_buffer));
+		frame_update(frame_buffer, frame_array[i]);
+		decoded_frame.push(framedata_to_image(frame_buffer));
 		await delay(1);
 	}
 }
@@ -97,37 +130,41 @@ async function attlh() {
 	var display = document.getElementById('attlh');
 	var height = 90;
 	var width = 116;
-	var frame_array = []
+	var frame_bundle = [];
+	var frame_array = [];
 	var frame_buffer;
-	var decoded_frame_array = [];
+	var decoded_frame = [];
 	var start;
 	var children;
-	var dummy = 0;
-	var j;
+	var j = 0;
 	var p;
 	var str;
-	const delay = ms => new Promise(res => setTimeout(res, ms));
 	// Create display-output elements
 	for (let i = 0; i < height; i++) {
 		p = document.createElement('p');
 		p.appendChild(document.createTextNode(''));
 		display.appendChild(p);
 	}
-	// Fetch frames
-	fetch_frames(frame_array);
-	await delay(2500);
-	// Convert framedata to image
-	decode_frames(decoded_frame_array, frame_array);
+	// Fetch frame bundles
+	fetch_frame_bundles(frame_bundle);
+	await delay(1000);
+	stream_decode(await frame_bundle[0], frame_array);
+	await delay(1500);
+	// Unbundle to individual frames
+	frame_unbundle(frame_bundle, frame_array)
+	
+	// Convert frames to displayable image (or in this case, text)
+	decode_frames(decoded_frame, frame_array);
 	await delay(2500);
 	children = display.children;
 	audio.play();
 	start = Date.now();
-	while (true) {
+	while (j < 5298) {
 		j = Math.trunc((Date.now() - start) / 40);
 		for (let k = 0; k < children.length; k++) {
-			str = decoded_frame_array[j][k*width];
+			str = decoded_frame[j][k*width];
 			for (let l = (k*width)+1; l < (k+1)*width; l++) {
-				str += ' ' + decoded_frame_array[j][l];
+				str += ' ' + decoded_frame[j][l];
 			}
 			children[k].textContent = str;
 		}

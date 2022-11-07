@@ -105,19 +105,33 @@ def pair(i):
 def nggyu_encoded():
 	frames_dir = 'D:\\This PC\\Videos\\nggyu\\'
 	output_buffer = []
+	data_stream = []
 	prev_frame = None
+	frame_bundle = 0
+	count = 0
 	for frame_num in range(0, 5298):
 		sys.stdout.write(f'\rscene{frame_num}.bmp')
 		sys.stdout.flush()
 		with open(frames_dir+f'scene{frame_num}.bmp', 'rb') as fin:
 			current_frame = color_to_3bit_greyscale(fin, px_array_column_start_offset=22, px_array_column_end_offset=22)[0]
-			for x,y in pair(run_length_encode(diff(prev_frame, current_frame))):
-				output_buffer.append((x << 4) | y)
+			for x in run_length_encode(diff(prev_frame, current_frame)):
+				data_stream.append(x)
 			prev_frame = current_frame
-		with open(f'D:\\GitHub\\jjsam07.github.io\\nggyu\\frames\\frame{frame_num}', 'wb') as fout:
-			fout.write(bytes(output_buffer))
-		output_buffer = []
+		count += 1
+		if count == 500:
+			with open(f'D:\\GitHub\\jjsam07.github.io\\attlh\\frame_bundle{frame_bundle}', 'wb') as fout:
+				for x,y in pair(data_stream):
+					output_buffer.append((x << 4) | y)
+				fout.write(bytes(output_buffer))
+			output_buffer = []
+			data_stream = []
+			count = 0
+			frame_bundle += 1
 		#if frame_num == 25: break
+	with open(f'D:\\GitHub\\jjsam07.github.io\\attlh\\frame_bundle{frame_bundle}', 'wb') as fout:
+		for x,y in pair(data_stream):
+			output_buffer.append((x << 4) | y)
+		fout.write(bytes(output_buffer))
 	sys.stdout.write('\n')
 	sys.stdout.flush()
 	#with open(f'D:\\GitHub\\bmp2ascii\\rick.bin', 'wb') as fout:

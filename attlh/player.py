@@ -9,11 +9,17 @@ def byte_to_nibble(byte_array):
 
 def frame_decode(encoded_frame):
 	result = []
+	#frames = []
+	#count = 0
 	temp = 0
 	shift_mult = 0
 	skip = False
 	remaining_bits = False
 	for x in encoded_frame:
+		#if count == 10440:
+		#	frames.append(result)
+		#	result = []
+		#	count = 0
 		if x & 0b1000:
 			if remaining_bits:
 				temp |= ((x & 0b111) << (3*shift_mult)+2)
@@ -27,6 +33,7 @@ def frame_decode(encoded_frame):
 		if temp != 0:
 			if skip:
 				result.append(temp << 2)
+				#count += temp
 				temp = 0
 				shift_mult = 0
 				skip = False
@@ -34,12 +41,17 @@ def frame_decode(encoded_frame):
 				continue
 			for i in range(0, temp):
 				result.append(x)
+			#count += temp
 			temp = 0
 			shift_mult = 0
 			remaining_bits = False
 			continue
 		result.append(x)
+		count += 1
+	#if count == 10440:
+	#	frames.append(result)
 	return result
+	#return len(frames)
 	
 def framedata_to_image(framedata):
 	chars = b' .!-+VJM'
