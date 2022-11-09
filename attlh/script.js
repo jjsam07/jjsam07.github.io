@@ -157,13 +157,14 @@ async function show_loading_screen(output_element, is_loading) {
 		}
 		await delay(10);
 	}
+	await delay(500);
 	while (is_loading[0]) {
-		await delay(1000);
 		for (let k = 0; k < 8; k++) {
 			output_element.textContent = Lloading[k] + loading_str + Rloading[k];
 			await delay(250);
 		}
 		output_element.textContent = '   ' + loading_str + '   ';
+		await delay(1000);
 	}
 }
 
