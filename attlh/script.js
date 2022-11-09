@@ -129,7 +129,7 @@ async function show_loading_screen(output_element, is_loading) {
 	var char_code;
 	var counter = 0;
 	for (let i = 0; i < 7; i++) {
-		await delay(50);
+		await delay(10);
 		char_code = (Math.floor(Math.random() * 100) % 0x5F) + 0x20;
 		fade.push(char_code);
 		temp_str += String.fromCharCode(char_code);
@@ -196,17 +196,15 @@ async function attlh() {
 	}
 	// Convert frames to displayable image (or in this case, text)
 	decode_frames(decoded_frame, frame_array);
-	await delay(2000);
-	loading[0] = false;
-	while (display.hasChildNodes()) {
-		display.removeChild(display.firstChild)
-	}
 	// Create display-output elements
 	for (let i = 0; i < height; i++) {
 		p = document.createElement('p');
 		p.appendChild(document.createTextNode(''));
 		display.appendChild(p);
 	}
+	await delay(2000);
+	display.removeChild(display.firstChild)
+	loading[0] = false;
 	children = display.children;
 	audio.play();
 	start = Date.now();
