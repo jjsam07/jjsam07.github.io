@@ -9,11 +9,11 @@ async function decompress_blob(compressed_blob) {
 }
 
 
-function byte_to_nibble(array_buffer) {
+function byte_to_nibble(decompressed_byte_array) {
 	var b = 0;
-	var result = new Uint8Array(array_buffer.byteLength * 2);
-	var byte_array = new Uint8Array(array_buffer);
-	for (let i = 0; i < array_buffer.byteLength; i++) {
+	var result = new Uint8Array(decompressed_byte_array.length * 2);
+	var byte_array = new Uint8Array(decompressed_byte_array);
+	for (let i = 0; i < decompressed_byte_array.length; i++) {
 		b = byte_array[i];
 		result[i * 2] = b >> 4;
 		result[(i * 2) + 1] = b & 0b1111;
@@ -101,9 +101,9 @@ async function fetch_frame_bundles(frame_bundle) {
 		frame_bundle.push(
 			fetch('frames/frame_bundle'+i+'.gz')
 				.then((res) => res.blob())
-				.then((compressed_blob) => decompress_blob(compressed_blob))
-				.then((decompressed_blob) => decompressed_blob.arrayBuffer())
-				.then((byte_array) => byte_to_nibble(byte_array))
+				.then((blob) => blob.arrayBuffer())
+				.then((compressed_byte_array) => pako.inflate(compressed_byte_array))
+				.then((decompressed_byte_array) => byte_to_nibble(decompressed_byte_array))
 		);
 		await delay(1);
 	}
