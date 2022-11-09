@@ -185,7 +185,7 @@ async function attlh() {
 	var str;
 	// Show loading screen
 	p = document.createElement('p');
-	p.setAttribute('style', 'font-size: 30px;');
+	p.setAttribute('style', 'font-size: 90px;');
 	p.appendChild(document.createTextNode(''));
 	display.appendChild(p);
 	show_loading_screen(p, loading)
