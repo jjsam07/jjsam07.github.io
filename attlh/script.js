@@ -196,6 +196,7 @@ async function attlh() {
 	}
 	// Convert frames to displayable image (or in this case, text)
 	decode_frames(decoded_frame, frame_array);
+	await delay(2000);
 	loading[0] = false;
 	while (display.hasChildNodes()) {
 		display.removeChild(display.firstChild)
