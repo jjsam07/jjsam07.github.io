@@ -209,6 +209,7 @@ async function attlh() {
 	audio.src = 'audio.m4a';
 	audio.load();
 	while (loading[0]) { await delay(1); } // wait for audio to be fully loaded
+	await delay(1000);
 	display.removeChild(display.firstChild)
 	children = display.children;
 	audio.play();
