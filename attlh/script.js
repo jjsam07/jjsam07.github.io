@@ -206,6 +206,7 @@ async function attlh() {
 	}
 	// Fetch audio
 	audio.oncanplaythrough = () => { loading_end(); }
+	audio.addEventListener('oncanplaythrough', () => { loading_end(); });
 	audio.src = 'audio.m4a';
 	while (loading[0]) { await delay(1); } // wait for audio to be fully loaded
 	await delay(2000);
