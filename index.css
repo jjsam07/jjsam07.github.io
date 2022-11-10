@@ -1,10 +1,25 @@
+a:link {
+	color: white;
+}
+
+a:visited {
+	color: #9370DB;
+}
+
+a:hover {
+	color: hotpink;
+}
+
+a:active {
+	color: #00FFFF;
+}
+
 body {
 	background-color: black;
 	color: white;
 }
 
 div {
-	color: pink;
 	font-size: 30px;
 	font-family: Courier New;
 	text-align: center;
