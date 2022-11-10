@@ -101,7 +101,7 @@ async function fetch_frame_bundles(frame_bundle) {
 		frame_bundle.push(
 			fetch('frames/frame_bundle'+i+'.gz')
 				.then((res) => res.blob())
-				.then((blob) => blob.arrayBuffer())
+				.then((blob) => new Response(blob).arrayBuffer())
 				.then((compressed_byte_array) => pako.inflate(compressed_byte_array))
 				.then((decompressed_byte_array) => byte_to_nibble(decompressed_byte_array))
 		);
