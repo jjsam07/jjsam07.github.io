@@ -169,7 +169,7 @@ async function show_loading_screen(output_element, is_loading) {
 }
 
 async function attlh() {
-	var audio = new Audio('audio.m4a');
+	var audio = new Audio();
 	var display = document.getElementById('attlh');
 	var height = 90;
 	var width = 116;
@@ -183,6 +183,7 @@ async function attlh() {
 	var j = 0;
 	var p;
 	var str;
+	var loading_end = () => {loading[0] = false;}
 	// Show loading screen
 	p = document.createElement('p');
 	p.setAttribute('style', 'font-size: 90px;');
@@ -203,9 +204,12 @@ async function attlh() {
 		p.appendChild(document.createTextNode(''));
 		display.appendChild(p);
 	}
+	// Fetch audio
+	audio.oncanplaythrough = () => { loading_end(); }
+	audio.src = 'audio.m4a';
+	while (loading[0]) { await delay(1); } // wait for audio to be fully loaded
 	await delay(2000);
 	display.removeChild(display.firstChild)
-	loading[0] = false;
 	children = display.children;
 	audio.play();
 	start = Date.now();
