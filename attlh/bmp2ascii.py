@@ -78,12 +78,12 @@ def px_color_to_greyscale(f, addr):
 	index = int((0.2989*pxR + 0.5870*pxG + 0.1140*pxB)/32)
 	return chars[index:index+1]
 	
-def px_color_to_3bit_greyscale(f, addr):
+def px_color_to_4bit_greyscale(f, addr):
 	f.seek(addr)
 	pxB = struct.unpack('B', f.read(1))[0]
 	pxG = struct.unpack('B', f.read(1))[0]
 	pxR = struct.unpack('B', f.read(1))[0]
-	px = int((0.2989*pxR + 0.5870*pxG + 0.1140*pxB)/32)
+	px = int((0.2989*pxR + 0.5870*pxG + 0.1140*pxB)/16)
 	return px
 	
 def getData(f, addr):
@@ -212,7 +212,7 @@ def bmp2ascii_color(fin, verbose=False, px_array_column_start_offset=0, px_array
 	
 	return output_buffer, output_buffer_lines
 	
-def color_to_3bit_greyscale(fin, verbose=False, px_array_column_start_offset=0, px_array_column_end_offset=0, px_array_row_start_offset=0, px_array_row_end_offset=0):
+def color_to_4bit_greyscale(fin, verbose=False, px_array_column_start_offset=0, px_array_column_end_offset=0, px_array_row_start_offset=0, px_array_row_end_offset=0):
 	arrStart = pxArrStart(fin)
 	color_depth = colorDepth(fin)
 	n_bytes = int(color_depth/8)
@@ -236,7 +236,7 @@ def color_to_3bit_greyscale(fin, verbose=False, px_array_column_start_offset=0, 
 	for i in range(height-1-px_array_row_start_offset, -1+px_array_row_end_offset, -1):
 		output_buffer_lines.append([])
 		for j in range(0+px_array_column_start_offset, iwidth-px_array_column_end_offset):
-			px = px_color_to_3bit_greyscale(fin, arrStart+(j*n_bytes)+((bwidth+padding)*i))
+			px = px_color_to_4bit_greyscale(fin, arrStart+(j*n_bytes)+((bwidth+padding)*i))
 			output_buffer.append(px)
 			output_buffer_lines[list_index].append(px)
 		list_index += 1

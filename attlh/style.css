@@ -1,9 +1,13 @@
 .attlh {
-	font-size: 5px;
+	font-size: 4px;
 	font-family: Courier New;
 	text-align: center;
 	line-height: 80%;
 	white-space: pre;
+}
+
+.output {
+	margin-bottom: -4px;
 }
 
 .press_enter {

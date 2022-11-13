@@ -1,5 +1,25 @@
 import sys
 
+def frame_deserialize(byte_array):
+	result = []
+	index = 4
+	metadata = 0
+	for b in byte_array:
+		if index == 4:
+			metadata = b
+			index = 0
+			continue
+		if metadata & (1 << (index * 2)):
+			result.append((b >> 4) | 0b10000)
+		else:
+			result.append(b >> 4)
+		if metadata & (1 << ((index * 2) + 1)):
+			result.append((b & 0b1111) | 0b10000)
+		else:
+			result.append(b & 0b1111)
+		index += 1
+	return result
+
 def byte_to_nibble(byte_array):
 	result = []
 	for b in byte_array:
@@ -9,31 +29,31 @@ def byte_to_nibble(byte_array):
 
 def frame_decode(encoded_frame):
 	result = []
-	#frames = []
-	#count = 0
+	frames = [] #
+	count = 0 #
 	temp = 0
 	shift_mult = 0
 	skip = False
 	remaining_bits = False
 	for x in encoded_frame:
-		#if count == 10440:
-		#	frames.append(result)
-		#	result = []
-		#	count = 0
-		if x & 0b1000:
+		if count == 10440: #
+			frames.append(result) #
+			result = [] #
+			count = 0 #
+		if x & 0b10000:
 			if remaining_bits:
-				temp |= ((x & 0b111) << (3*shift_mult)+2)
+				temp |= ((x & 0b1111) << (4*shift_mult)+3)
 				shift_mult += 1
 				continue
-			if x & 0b100:
+			if x & 0b1000:
 				skip = True
-			temp |= x & 0b11
+			temp |= x & 0b111
 			remaining_bits = True
 			continue
 		if temp != 0:
 			if skip:
-				result.append(temp << 2)
-				#count += temp
+				result.append(temp << 3)
+				count += temp #
 				temp = 0
 				shift_mult = 0
 				skip = False
@@ -41,17 +61,17 @@ def frame_decode(encoded_frame):
 				continue
 			for i in range(0, temp):
 				result.append(x)
-			#count += temp
+			count += temp # 
 			temp = 0
 			shift_mult = 0
 			remaining_bits = False
 			continue
 		result.append(x)
 		count += 1
-	#if count == 10440:
-	#	frames.append(result)
-	return result
-	#return len(frames)
+	if count == 10440: #
+		frames.append(result) #
+	#return result
+	return len(frames) #
 	
 def framedata_to_image(framedata):
 	chars = b' .!-+VJM'

@@ -9,14 +9,27 @@ async function decompress_blob(compressed_blob) {
 }
 
 
-function byte_to_nibble(decompressed_byte_array) {
-	var b = 0;
-	var result = new Uint8Array(decompressed_byte_array.length * 2);
-	var byte_array = new Uint8Array(decompressed_byte_array);
-	for (let i = 0; i < decompressed_byte_array.length; i++) {
-		b = byte_array[i];
-		result[i * 2] = b >> 4;
-		result[(i * 2) + 1] = b & 0b1111;
+function frame_deserialize(byte_array) {
+	var result = [];
+	var index = 4;
+	var metadata = 0;
+	for (b of byte_array) {
+		if (index === 4) {
+			metadata = b;
+			index = 0;
+			continue;
+		}
+		if (metadata & (1 << (index * 2))) {
+			result.push((b >> 4) | 0b10000);
+		} else {
+			result.push(b >> 4);
+		}
+		if (metadata & (1 << ((index * 2) + 1))) {
+			result.push((b & 0b1111) | 0b10000);
+		} else {
+			result.push(b & 0b1111);
+		}
+		index += 1;
 	}
 	return result;
 }
@@ -29,27 +42,27 @@ function stream_decode(encoded_stream, frame_array) {
 	var skip = false;
 	var remaining_bits = false;
 	for (const x of encoded_stream) {
-		if (count == 10440) {
+		if (count === 10440) {
 			frame_array.push(result);
 			result = [];
 			count = 0;
 		}
-		if (x & 0b1000) {
+		if (x & 0b10000) {
 			if (remaining_bits) {
-				temp |= ((x & 0b111) << (3*shift_mult)+2);
+				temp |= ((x & 0b1111) << (4*shift_mult)+3);
 				shift_mult += 1;
 				continue;
 			}
-			if (x & 0b100) {
+			if (x & 0b1000) {
 				skip = true;
 			}
-			temp |= x & 0b11;
+			temp |= x & 0b111;
 			remaining_bits = true;
 			continue;
 		}
 		if (temp != 0) {
 			if (skip) {
-				result.push(temp << 2);
+				result.push(temp << 3);
 				count += temp;
 				temp = 0;
 				shift_mult = 0;
@@ -69,17 +82,20 @@ function stream_decode(encoded_stream, frame_array) {
 		result.push(x);
 		count += 1;
 	}
-	if (count == 10440) {
+	if (count === 10440) {
 		frame_array.push(result);
 	}
-	//return result;
 }
 
 function framedata_to_image(framedata) {
-	var chars = ['  ', '..', '!!', '--', '++', 'VV', 'JJ', 'MM'];
-	result = [];
+	var char0 = ['   ', '   ', '   ', '   ', ' . ', ' . ', ' - ', '.- ', '.-.', '---', '---', '-V-', 'VVV', 'VVV', 'VMV', 'MMM'];
+	var char1 = ['   ', ' . ', '. .', '- -', '- -', '-.-', '---', '---', '---', '---', 'V-V', 'VVV', 'VVV', 'MVM', 'MMM', 'MMM'];
+	var char2 = ['   ', '   ', '   ', '   ', ' . ', ' . ', ' - ', ' -.', '.-.', '---', '---', '-V-', 'VVV', 'VVV', 'VMV', 'MMM'];
+	result = [[], [], []];
 	for (const x of framedata) {
-		result.push(chars[x]);
+		result[0].push(char0[x]);
+		result[1].push(char1[x]);
+		result[2].push(char2[x]);
 	}
 	return result;
 }
@@ -87,8 +103,8 @@ function framedata_to_image(framedata) {
 function frame_update(frame_buffer, next_frame) {
 	var index = 0;
 	for (const x of next_frame) {
-		if (x > 0b111) {
-			index += (x >> 2);
+		if (x > 0b1111) {
+			index += (x >> 3);
 			continue;
 		}
 		frame_buffer[index] = x;
@@ -103,7 +119,7 @@ async function fetch_frame_bundles(frame_bundle) {
 				.then((res) => res.blob())
 				.then((blob) => new Response(blob).arrayBuffer())
 				.then((compressed_byte_array) => pako.inflate(compressed_byte_array))
-				.then((decompressed_byte_array) => byte_to_nibble(decompressed_byte_array))
+				.then((decompressed_byte_array) => frame_deserialize(decompressed_byte_array))
 		);
 		await delay(1);
 	}
@@ -182,7 +198,9 @@ async function attlh() {
 	var children;
 	var j = 0;
 	var p;
-	var str;
+	var str0;
+	var str1;
+	var str2;
 	var loading_end = () => {loading[0] = false;}
 	// Show loading screen
 	p = document.createElement('p');
@@ -199,9 +217,10 @@ async function attlh() {
 	// Convert frames to displayable image (or in this case, text)
 	decode_frames(decoded_frame, frame_array);
 	// Create display-output elements
-	for (let i = 0; i < height; i++) {
+	for (let i = 0; i < height * 3; i++) {
 		p = document.createElement('p');
 		p.appendChild(document.createTextNode(''));
+		p.setAttribute('class', 'output')
 		display.appendChild(p);
 	}
 	// Fetch audio
@@ -216,12 +235,18 @@ async function attlh() {
 	start = Date.now();
 	while (j < 5298) {
 		j = Math.trunc((Date.now() - start) / 40);
-		for (let k = 0; k < children.length; k++) {
-			str = decoded_frame[j][k*width];
+		for (let k = 0; k < height; k++) {
+			str0 = decoded_frame[j][0][k*width];
+			str1 = decoded_frame[j][1][k*width];
+			str2 = decoded_frame[j][2][k*width];
 			for (let l = (k*width)+1; l < (k+1)*width; l++) {
-				str += ' ' + decoded_frame[j][l];
+				str0 += ' ' + decoded_frame[j][0][l];
+				str1 += ' ' + decoded_frame[j][1][l];
+				str2 += ' ' + decoded_frame[j][2][l];
 			}
-			children[k].textContent = str;
+			children[(k * 3)].textContent = str0;
+			children[(k * 3) + 1].textContent = str1;
+			children[(k * 3) + 2].textContent = str2;
 		}
 		await delay(1);
 	}
@@ -247,4 +272,72 @@ function button_handler() {
 	button_div.innerHTML = '';
 	button_div.remove();
 	attlh();
+}
+
+var test_counter = 0
+
+function dec_counter() {
+	if (test_counter > 0) {
+		test_counter -= 1;
+	}
+}
+
+function inc_counter() {
+	if (test_counter < 15) {
+		test_counter += 1;
+	}
+}
+
+function init() {
+	var display = document.getElementById('attlh');
+	var elem = document.getElementById('press_enter');
+	var button_div = document.getElementById('button_div');
+	var p;
+	elem.remove();
+	button_div.innerHTML = '';
+	button_div.remove();
+	for (let i = 0; i < 90; i++) {
+		p = document.createElement('p');
+		p.appendChild(document.createTextNode(''));
+		p.setAttribute('class', 'output')
+		display.appendChild(p);
+	}
+}
+
+function draw() {
+	var display = document.getElementById('attlh');
+	var char0 = ['   ', '   ', '   ', '   ', ' . ', ' . ', ' - ', '.- ', '.-.', '---', '---', '-V-', 'VVV', 'VVV', 'VMV', 'MMM'];
+	var char1 = ['   ', ' . ', '. .', '- -', '- -', '-.-', '---', '---', '---', '---', 'V-V', 'VVV', 'VVV', 'MVM', 'MMM', 'MMM'];
+	var char2 = ['   ', '   ', '   ', '   ', ' . ', ' . ', ' - ', ' -.', '.-.', '---', '---', '-V-', 'VVV', 'VVV', 'VMV', 'MMM'];
+	var str0;
+	var str1;
+	//var str2;
+	for (let i = 0; i < 30; i++) {
+		str0 = '';
+		str1 = '';
+		str2 = '';
+		str0 += char0[test_counter];
+		str1 += char1[test_counter];
+		str2 += char2[test_counter];
+		for (let j = 0; j < 115; j++) {
+			str0 += char0[test_counter];
+			str1 += char1[test_counter];
+			str2 += char2[test_counter];
+		}
+		display.children[(i * 3)].textContent = str0;
+		display.children[(i * 3) + 1].textContent  = str1;
+		display.children[(i * 3) + 2].textContent  = str2;
+	}
+}
+
+function test_keydown_handler(event) {
+	if (event.key === 'ArrowLeft') {
+		dec_counter();
+		console.log(test_counter);
+		draw();
+	} else if (event.key === 'ArrowRight') {
+		inc_counter();
+		console.log(test_counter);
+		draw();
+	}
 }
