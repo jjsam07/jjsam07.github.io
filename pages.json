@@ -1,14 +1,14 @@
 [
     {
-        "location":"eh_paano_kung/eh_paano_kung.html",
+        "location":"eh_paano_kung",
         "name":"Eh, paano kung..."
     },
     {
-        "location":"attlh/attlh.html",
+        "location":"attlh",
         "name":"ATTLH"
     },
     {
-        "location":"greencycle/",
-        "name":"greencycle"
+        "location":"meta",
+        "name":"meta"
     }
 ]
